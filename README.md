@@ -2,7 +2,18 @@
 
 Hyperliquid Perp 向けの **maker 中心** 板置き bot + **ローカル Web ダッシュボード**。
 
+## このbotについて
+
 **目的は利益最大化ではなく、安全に少額検証できる状態を作ること。**
+
+Hyperliquid 上で bid/ask 両側に小さなポジションを置き、スプレッドを稼ぐ maker 戦略です。
+在庫の偏りに応じてクオート価格を傾け、リスクが高まったら自動で停止します。
+
+- v1 対象: **Perp のみ** (BTC, ETH)
+- ネットワーク: **testnet での少額検証前提**
+- レバレッジ: **初期値 1x**
+- 注文方式: **ALO (post-only 相当) のみ**。通常時は taker を使わない
+- ダッシュボード: ローカル限定の read-only Web UI (127.0.0.1:8080)
 
 ---
 
@@ -365,6 +376,89 @@ Dashboard (別スレッド, FastAPI)
 
 これらは全て `app/exchange/` adapter 層に隔離されており、
 修正が必要な場合はそこだけ変更すれば bot 本体への影響は最小限です。
+
+---
+
+## テストの実行
+
+```bash
+# 全ユニットテスト (network不要)
+python3 -m pytest tests/ -m "not integration" -q
+
+# カバレッジ付き
+python3 -m pytest tests/ -m "not integration" --cov=app --cov-report=term-missing
+
+# integration テスト (testnet接続が必要)
+python3 -m pytest tests/ -m "integration" -v
+
+# 特定ファイルのみ
+python3 -m pytest tests/test_quote_engine.py -v
+python3 -m pytest tests/test_risk_manager.py -v
+```
+
+**現在のテスト状況**: 142 passed, 2 skipped (integration)
+
+| テストファイル | 内容 |
+|--------------|------|
+| `test_settings.py` | config バリデーション・placeholder拒否 |
+| `test_models.py` | (CLOID等の基本型) |
+| `test_state.py` | BotState・kill switch・snapshot隔離 |
+| `test_telemetry.py` | SecretFilter・秘密情報ログ非出力 |
+| `test_market_data.py` | 板データ処理・stale検知 |
+| `test_quote_engine.py` | quote生成・skew・tick丸め・no-quote |
+| `test_order_manager.py` | 注文ライフサイクル・partial fill |
+| `test_inventory_manager.py` | 在庫追跡・skew算出・限度判定 |
+| `test_risk_manager.py` | 全リスクチェック・emergency bypass |
+| `test_kill_switch.py` | kill switch発動・flatten条件 |
+| `test_pnl_manager.py` | realized PnL・fee追跡 |
+| `test_persistence.py` | SQLite CRUD |
+| `test_api.py` | dashboard API・秘密情報非含有 |
+| `test_reconnect_recovery.py` | 再接続嵐検知・状態回復設計 |
+| `test_edge_cases.py` | 安全機構の境界条件 |
+
+### 未テスト項目 (integration / network依存)
+
+| 項目 | 理由 |
+|------|------|
+| WS実際の接続・切断・再接続 | live testnet接続が必要 |
+| 注文送信と取引所レスポンスの実パース | live API必要 |
+| emergency flatten の実約定確認 | live API必要 |
+| ダッシュボード + bot 同時稼働 E2E | uvicorn/asyncio E2Eテスト相当 |
+
+---
+
+## 開発者向けメモ
+
+### UNVERIFIED 仕様の扱い方
+
+`app/exchange/` adapter 層のコードに以下のタグでコメントが付いています:
+
+```python
+# FACT:        公式仕様で確認済み
+# UNVERIFIED:  未確認。実動作で要確認
+# ASSUMPTION:  合理的な仮定。違ったら adapter 層だけ修正
+# TODO:        実装が必要
+```
+
+UNVERIFIED 箇所を修正する際は `app/exchange/client.py` と `app/exchange/normalizer.py` のみ変更すれば bot 本体に影響しません。
+
+### ディレクトリ構成
+
+```
+app/
+  exchange/        ← HL SDK依存。UNVERIFIED仕様をここに隔離
+  api/             ← ダッシュボード。bot本体に影響を与えない
+  main.py          ← エントリポイント
+  settings.py      ← 全設定。起動拒否判定
+  state.py         ← asyncio.Lock付き共有状態
+  ...
+
+templates/         ← Jinja2 HTML
+static/            ← JS/CSS (no framework)
+tests/             ← 142テスト
+data/              ← SQLite DB (.gitignore)
+logs/              ← ログファイル (.gitignore)
+```
 
 ---
 
