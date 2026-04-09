@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HL Maker Bot Dashboard</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <!-- Header bar -->
+  <header id="header">
+    <div class="header-left">
+      <span id="bot-status-indicator" class="status-dot"></span>
+      <strong id="bot-status-text">LOADING...</strong>
+      <span id="network-badge" class="badge badge-testnet">TESTNET</span>
+      <span id="ks-badge" class="badge badge-ok">KillSwitch: OFF</span>
+    </div>
+    <div class="header-right">
+      <span id="last-update">更新中...</span>
+    </div>
+  </header>
+
+  <!-- Layout -->
+  <div class="layout">
+    <!-- Sidebar nav -->
+    <nav class="sidebar">
+      <ul>
+        <li><a href="#" onclick="showSection('overview')" class="nav-link active">Overview</a></li>
+        <li><a href="#" onclick="showSection('symbols')" class="nav-link">Symbols</a></li>
+        <li><a href="#" onclick="showSection('orders')" class="nav-link">Orders</a></li>
+        <li><a href="#" onclick="showSection('fills')" class="nav-link">Fills</a></li>
+        <li><a href="#" onclick="showSection('positions')" class="nav-link">Positions</a></li>
+        <li><a href="#" onclick="showSection('pnl')" class="nav-link">PnL</a></li>
+        <li><a href="#" onclick="showSection('risk')" class="nav-link">Risk</a></li>
+        <li><a href="#" onclick="showSection('events')" class="nav-link">Events</a></li>
+      </ul>
+    </nav>
+
+    <!-- Main content -->
+    <main class="content">
+
+      <!-- Overview -->
+      <section id="section-overview" class="section active">
+        <h2>Overview</h2>
+        <div class="card-grid">
+          <div class="card"><div class="card-label">Bot Status</div><div class="card-value" id="ov-bot-status">-</div></div>
+          <div class="card"><div class="card-label">WS Connected</div><div class="card-value" id="ov-ws">-</div></div>
+          <div class="card"><div class="card-label">Network</div><div class="card-value" id="ov-network">-</div></div>
+          <div class="card"><div class="card-label">Symbols</div><div class="card-value" id="ov-symbols">-</div></div>
+          <div class="card"><div class="card-label">Realized PnL</div><div class="card-value" id="ov-realized">-</div></div>
+          <div class="card"><div class="card-label">Fees Paid</div><div class="card-value" id="ov-fees">-</div></div>
+          <div class="card"><div class="card-label">Net PnL</div><div class="card-value" id="ov-net">-</div></div>
+          <div class="card"><div class="card-label">Kill Switch</div><div class="card-value" id="ov-ks">-</div></div>
+        </div>
+        <div id="ov-ks-reason" class="alert alert-danger hidden"></div>
+      </section>
+
+      <!-- Symbols -->
+      <section id="section-symbols" class="section">
+        <h2>Symbols</h2>
+        <table id="symbols-table">
+          <thead>
+            <tr>
+              <th>Symbol</th><th>Mid</th><th>Spread(bps)</th>
+              <th>Imbalance</th><th>Vol</th>
+              <th>Stale</th><th>Abrupt</th><th>Book OK</th>
+              <th>Quoting</th><th>Bid Quote</th><th>Ask Quote</th>
+              <th>Updated</th>
+            </tr>
+          </thead>
+          <tbody id="symbols-tbody"></tbody>
+        </table>
+      </section>
+
+      <!-- Orders -->
+      <section id="section-orders" class="section">
+        <h2>Orders</h2>
+        <table id="orders-table">
+          <thead>
+            <tr>
+              <th>Symbol</th><th>Side</th><th>Price</th><th>Size</th>
+              <th>Filled</th><th>TIF</th><th>Kind</th><th>Status</th>
+              <th>ExchOID</th><th>Created</th><th>Reject Reason</th>
+            </tr>
+          </thead>
+          <tbody id="orders-tbody"></tbody>
+        </table>
+      </section>
+
+      <!-- Fills -->
+      <section id="section-fills" class="section">
+        <h2>Fills</h2>
+        <table id="fills-table">
+          <thead>
+            <tr>
+              <th>Time</th><th>Symbol</th><th>Side</th>
+              <th>Price</th><th>Size</th><th>Fee</th><th>Maker</th>
+            </tr>
+          </thead>
+          <tbody id="fills-tbody"></tbody>
+        </table>
+      </section>
+
+      <!-- Positions -->
+      <section id="section-positions" class="section">
+        <h2>Positions</h2>
+        <table id="positions-table">
+          <thead>
+            <tr>
+              <th>Symbol</th><th>Size</th><th>Avg Cost</th>
+              <th>Unrealized PnL</th><th>Exposure (USD)</th>
+              <th>Skew (bps)</th><th>Long Limit</th><th>Short Limit</th>
+            </tr>
+          </thead>
+          <tbody id="positions-tbody"></tbody>
+        </table>
+      </section>
+
+      <!-- PnL -->
+      <section id="section-pnl" class="section">
+        <h2>PnL</h2>
+        <div class="card-grid">
+          <div class="card"><div class="card-label">Realized PnL</div><div class="card-value" id="pnl-realized">-</div></div>
+          <div class="card"><div class="card-label">Unrealized PnL</div><div class="card-value" id="pnl-unrealized">-</div></div>
+          <div class="card"><div class="card-label">Fees Paid</div><div class="card-value" id="pnl-fees">-</div></div>
+          <div class="card"><div class="card-label">Net PnL</div><div class="card-value" id="pnl-net">-</div></div>
+          <div class="card"><div class="card-label">Daily Loss %</div><div class="card-value" id="pnl-daily-loss">-</div></div>
+          <div class="card"><div class="card-label">Drawdown %</div><div class="card-value" id="pnl-drawdown">-</div></div>
+          <div class="card"><div class="card-label">Day Start Equity</div><div class="card-value" id="pnl-equity">-</div></div>
+        </div>
+      </section>
+
+      <!-- Risk -->
+      <section id="section-risk" class="section">
+        <h2>Risk</h2>
+        <div class="card-grid">
+          <div class="card"><div class="card-label">Kill Switch</div><div class="card-value" id="risk-ks">-</div></div>
+          <div class="card"><div class="card-label">Daily Loss / Limit</div><div class="card-value" id="risk-daily-loss">-</div></div>
+          <div class="card"><div class="card-label">Drawdown / Limit</div><div class="card-value" id="risk-drawdown">-</div></div>
+          <div class="card"><div class="card-label">Total Exposure / Limit</div><div class="card-value" id="risk-exposure">-</div></div>
+          <div class="card"><div class="card-label">Reject Streak</div><div class="card-value" id="risk-rejects">-</div></div>
+          <div class="card"><div class="card-label">Reconnect Streak</div><div class="card-value" id="risk-reconnect">-</div></div>
+          <div class="card"><div class="card-label">Stale Data Age (ms)</div><div class="card-value" id="risk-stale">-</div></div>
+          <div class="card"><div class="card-label">Abnormal Spread</div><div class="card-value" id="risk-spread">-</div></div>
+          <div class="card"><div class="card-label">Abrupt Move</div><div class="card-value" id="risk-abrupt">-</div></div>
+          <div class="card"><div class="card-label">Book Corrupted</div><div class="card-value" id="risk-book">-</div></div>
+        </div>
+      </section>
+
+      <!-- Events -->
+      <section id="section-events" class="section">
+        <h2>Events</h2>
+        <table id="events-table">
+          <thead>
+            <tr><th>Time</th><th>Level</th><th>Type</th><th>Symbol</th><th>Message</th></tr>
+          </thead>
+          <tbody id="events-tbody"></tbody>
+        </table>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Control buttons -->
+  <footer class="controls">
+    <button class="btn btn-warn" onclick="requestStop()">Graceful Stop</button>
+    <button class="btn btn-danger" onclick="requestKill()">Emergency Kill</button>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
