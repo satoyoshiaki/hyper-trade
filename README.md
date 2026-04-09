@@ -160,6 +160,36 @@ http://127.0.0.1:8080
 
 2秒ごとに自動更新されます。
 
+### スクリーンショット
+
+**Overview** — bot状態・今日のPnL・kill switch 状態を一覧表示
+
+![Overview](docs/screenshots/overview.png)
+
+**Symbols** — mid価格・spread・imbalance・クオート状況をリアルタイム表示
+
+![Symbols](docs/screenshots/symbols.png)
+
+**Orders** — open/filled 注文の一覧 (CLOID・TIF・ステータス付き)
+
+![Orders](docs/screenshots/orders.png)
+
+**Positions** — symbol別ポジション・平均建値・inventory skew状態
+
+![Positions](docs/screenshots/positions.png)
+
+**PnL** — realized/unrealized/fees・日次損益・損失上限の進捗
+
+![PnL](docs/screenshots/pnl.png)
+
+**Risk** — 全リスク指標の使用率・reconnect streak・stale data age
+
+![Risk](docs/screenshots/risk.png)
+
+**Events** — ボットイベント・エラーの時系列ログ
+
+![Events](docs/screenshots/events.png)
+
 ### ダッシュボードで実行できる操作
 
 - **Graceful Stop**: 現在サイクル完了後に停止 (注文キャンセル)

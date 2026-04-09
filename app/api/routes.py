@@ -66,7 +66,14 @@ def _ds() -> DashboardState:
 async def index(request: Request):
     if _templates is None:
         return HTMLResponse("<h1>Dashboard not configured</h1>", status_code=500)
-    return _templates.TemplateResponse("index.html", {"request": request})
+    try:
+        return _templates.TemplateResponse("index.html", {"request": request})
+    except Exception:
+        # Fallback: serve as plain HTML (no template variables used)
+        from pathlib import Path
+        html_path = Path(__file__).resolve().parent.parent.parent / "templates" / "index.html"
+        html = html_path.read_text(encoding="utf-8")
+        return HTMLResponse(content=html)
 
 
 # ------------------------------------------------------------------
