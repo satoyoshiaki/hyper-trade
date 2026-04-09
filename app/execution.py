@@ -115,7 +115,7 @@ class Execution:
         if active_quote is not None:
             now_ms = int(
                 (datetime.now(tz=timezone.utc)
-                 - active_quote.submitted_at.replace(tzinfo=timezone.utc)
+                 - (active_quote.submitted_at if active_quote.submitted_at.tzinfo else active_quote.submitted_at.replace(tzinfo=timezone.utc))
                 ).total_seconds() * 1000
             )
             should_replace = self._qe.should_replace(new_quote, active_quote, now_ms)

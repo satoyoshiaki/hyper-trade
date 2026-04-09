@@ -14,7 +14,7 @@ from __future__ import annotations
 import asyncio
 import copy
 from collections import deque
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Optional
 
@@ -22,6 +22,7 @@ from app.models import (
     ActiveQuote,
     BotEvent,
     BotStatus,
+    EventLevel,
     Fill,
     KillReason,
     MarketSnapshot,
@@ -101,7 +102,7 @@ class BotState:
         async with self._lock:
             self.status = status
             if status == BotStatus.RUNNING and self.started_at is None:
-                self.started_at = datetime.utcnow()
+                self.started_at = datetime.now(tz=timezone.utc)
 
     async def activate_kill_switch(
         self, reason: KillReason, message: str = ""
@@ -111,10 +112,10 @@ class BotState:
                 return  # already active, don't overwrite reason
             self.kill_switch_active = True
             self.kill_switch_reason = reason
-            self.kill_switch_triggered_at = datetime.utcnow()
+            self.kill_switch_triggered_at = datetime.now(tz=timezone.utc)
             self.events.append(
                 BotEvent(
-                    level=__import__("app.models", fromlist=["EventLevel"]).EventLevel.CRITICAL,
+                    level=EventLevel.CRITICAL,
                     event_type="kill_switch",
                     message=message or reason.value,
                 )
@@ -186,7 +187,7 @@ class BotState:
 
     async def record_reconnect(self, at: Optional[datetime] = None) -> None:
         async with self._lock:
-            self.ws_reconnect_times.append(at or datetime.utcnow())
+            self.ws_reconnect_times.append(at or datetime.now(tz=timezone.utc))
             self.risk.reconnect_count += 1
 
     async def set_ws_connected(self, connected: bool) -> None:
@@ -195,7 +196,7 @@ class BotState:
 
     async def heartbeat(self) -> None:
         async with self._lock:
-            self.last_heartbeat = datetime.utcnow()
+            self.last_heartbeat = datetime.now(tz=timezone.utc)
 
     # ------------------------------------------------------------------
     # Snapshot for dashboard (no lock held in caller)

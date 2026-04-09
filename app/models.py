@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 from enum import Enum, auto
 from typing import Optional
@@ -147,7 +147,7 @@ class MarketSnapshot:
     short_term_vol: Decimal   # short-term realized vol estimate
     bids: list[BookLevel] = field(default_factory=list)
     asks: list[BookLevel] = field(default_factory=list)
-    updated_at: datetime = field(default_factory=datetime.utcnow)
+    updated_at: datetime = field(default_factory=lambda: datetime.now(tz=timezone.utc))
     stale: bool = False
     abrupt_move: bool = False
     book_corrupted: bool = False
@@ -166,7 +166,7 @@ class Quote:
     ask_price: Decimal
     bid_size: Decimal
     ask_size: Decimal
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(tz=timezone.utc))
 
 
 @dataclass
@@ -179,7 +179,7 @@ class ActiveQuote:
     ask_price: Decimal
     bid_size: Decimal
     ask_size: Decimal
-    submitted_at: datetime = field(default_factory=datetime.utcnow)
+    submitted_at: datetime = field(default_factory=lambda: datetime.now(tz=timezone.utc))
 
 
 # ---------------------------------------------------------------------------
@@ -200,8 +200,8 @@ class Order:
     status: OrderStatus = OrderStatus.PENDING
     exchange_oid: Optional[int] = None    # HL's internal order ID
     filled_size: Decimal = field(default_factory=lambda: Decimal("0"))
-    created_at: datetime = field(default_factory=datetime.utcnow)
-    updated_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(tz=timezone.utc))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(tz=timezone.utc))
     reject_reason: Optional[str] = None
 
 
@@ -221,7 +221,7 @@ class Fill:
     size: Decimal
     fee: Decimal
     fee_token: str = "USDC"
-    filled_at: datetime = field(default_factory=datetime.utcnow)
+    filled_at: datetime = field(default_factory=lambda: datetime.now(tz=timezone.utc))
     is_maker: bool = True
 
 
@@ -236,7 +236,7 @@ class Position:
     size: Decimal            # positive = long, negative = short
     avg_cost: Decimal
     unrealized_pnl: Decimal = field(default_factory=lambda: Decimal("0"))
-    updated_at: datetime = field(default_factory=datetime.utcnow)
+    updated_at: datetime = field(default_factory=lambda: datetime.now(tz=timezone.utc))
 
 
 # ---------------------------------------------------------------------------
@@ -293,4 +293,4 @@ class BotEvent:
     message: str = ""
     symbol: Optional[str] = None
     detail: Optional[dict] = None
-    occurred_at: datetime = field(default_factory=datetime.utcnow)
+    occurred_at: datetime = field(default_factory=lambda: datetime.now(tz=timezone.utc))

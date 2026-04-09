@@ -113,15 +113,13 @@ class TestRisk:
         assert "kill_switch_active" in data
         assert "daily_loss_pct" in data
 
-    def test_risk_kill_switch_visible(self, settings, tmp_path):
+    @pytest.mark.asyncio
+    async def test_risk_kill_switch_visible(self, settings, tmp_path):
         """Kill switch state must be visible in risk API."""
-        import asyncio
         from app.models import KillReason
 
         state = BotState(symbols=settings.symbols)
-        asyncio.get_event_loop().run_until_complete(
-            state.activate_kill_switch(KillReason.MANUAL, "test")
-        )
+        await state.activate_kill_switch(KillReason.MANUAL, "test")
         db_path = tmp_path / "test2.db"
         persistence = Persistence(db_path)
         persistence.initialize()

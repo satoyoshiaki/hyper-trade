@@ -10,6 +10,7 @@ Security:
 from __future__ import annotations
 
 import logging
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -34,12 +35,20 @@ def create_dashboard_app(
     settings: Settings,
 ) -> FastAPI:
     """Create and configure the dashboard FastAPI app."""
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        log.info("Dashboard API started.")
+        yield
+        log.info("Dashboard API stopped.")
+
     app = FastAPI(
         title="HL Maker Bot Dashboard",
         description="Read-only dashboard for Hyperliquid maker bot",
         version="0.1.0",
         docs_url="/docs",     # Swagger UI — only accessible on localhost
         redoc_url=None,
+        lifespan=lifespan,
     )
 
     # Static files and templates
@@ -57,9 +66,5 @@ def create_dashboard_app(
     # Wire up routes
     setup_routes(dashboard_state, settings, templates)
     app.include_router(router)
-
-    @app.on_event("startup")
-    async def on_startup() -> None:
-        log.info("Dashboard API started.")
 
     return app

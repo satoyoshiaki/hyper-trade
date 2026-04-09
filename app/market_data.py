@@ -227,8 +227,10 @@ class MarketDataProcessor:
         sym_state = self._state.symbols.get(symbol)
         if sym_state is None or sym_state.market is None:
             return True, 999999
+        updated = sym_state.market.updated_at
+        if updated.tzinfo is None:
+            updated = updated.replace(tzinfo=timezone.utc)
         age_ms = int(
-            (datetime.now(tz=timezone.utc) - sym_state.market.updated_at.replace(tzinfo=timezone.utc)).total_seconds()
-            * 1000
+            (datetime.now(tz=timezone.utc) - updated).total_seconds() * 1000
         )
         return age_ms >= self._settings.stale_data_threshold_ms, age_ms

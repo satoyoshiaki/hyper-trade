@@ -55,10 +55,10 @@ class DashboardState:
         s = await self._snap()
         pnl = s.pnl
         now = datetime.now(tz=timezone.utc)
-        uptime_s = (
-            (now - s.started_at.replace(tzinfo=timezone.utc)).total_seconds()
-            if s.started_at else None
-        )
+        started = s.started_at
+        if started and started.tzinfo is None:
+            started = started.replace(tzinfo=timezone.utc)
+        uptime_s = (now - started).total_seconds() if started else None
         return OverviewResponse(
             bot_status=s.status.value,
             kill_switch_active=s.kill_switch_active,
@@ -213,18 +213,17 @@ class DashboardState:
         from datetime import timedelta
         now = datetime.now(tz=timezone.utc)
         window = timedelta(seconds=self._settings.reconnect_window_s)
+        def _tz(t: datetime) -> datetime:
+            return t if t.tzinfo else t.replace(tzinfo=timezone.utc)
+
         reconnect_streak = sum(
             1 for t in s.ws_reconnect_times
-            if now - t.replace(tzinfo=timezone.utc) < window
+            if now - _tz(t) < window
         )
 
-        any_stale = any(
-            sym_state.market and sym_state.market.stale
-            for sym_state in s.symbols.values()
-        )
         stale_age_ms = max(
             (
-                int((now - sym_state.market.updated_at.replace(tzinfo=timezone.utc)).total_seconds() * 1000)
+                int((now - _tz(sym_state.market.updated_at)).total_seconds() * 1000)
                 for sym_state in s.symbols.values()
                 if sym_state.market
             ),

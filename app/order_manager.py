@@ -312,7 +312,8 @@ class OrderManager:
         for order in list(self._state.open_orders.values()):
             if order.kind != OrderKind.MAKER_QUOTE:
                 continue
-            age_ms = int((now - order.created_at.replace(tzinfo=timezone.utc)).total_seconds() * 1000)
+            created = order.created_at if order.created_at.tzinfo else order.created_at.replace(tzinfo=timezone.utc)
+            age_ms = int((now - created).total_seconds() * 1000)
             if age_ms >= max_age_ms:
                 log.info(
                     "Cancelling stale quote cloid=%s age=%dms", order.cloid, age_ms
