@@ -1,0 +1,190 @@
+{
+  "meta": {
+    "title": "HL Maker Bot Dashboard",
+    "defaultLocale": "ja"
+  },
+  "header": {
+    "loading": "Loading...",
+    "updating": "Updating...",
+    "lastUpdated": "Updated: {time}",
+    "killSwitchOn": "Kill Switch: ON",
+    "killSwitchOff": "Kill Switch: OFF"
+  },
+  "controls": {
+    "language": "Language",
+    "gracefulStop": "Graceful Stop",
+    "emergencyKill": "Emergency Kill"
+  },
+  "nav": {
+    "overview": "Overview",
+    "symbols": "Symbols",
+    "orders": "Orders",
+    "fills": "Fills",
+    "positions": "Positions",
+    "pnl": "PnL",
+    "risk": "Risk",
+    "events": "Events"
+  },
+  "network": {
+    "testnet": "TESTNET",
+    "mainnet": "MAINNET"
+  },
+  "common": {
+    "yes": "YES",
+    "no": "no",
+    "active": "ACTIVE",
+    "off": "OFF"
+  },
+  "status": {
+    "bot": {
+      "starting": "STARTING",
+      "running": "RUNNING",
+      "paused": "PAUSED",
+      "stopping": "STOPPING",
+      "stopped": "STOPPED",
+      "error": "ERROR",
+      "unknown": "UNKNOWN"
+    }
+  },
+  "overview": {
+    "botStatus": "Bot Status",
+    "wsConnected": "WS Connected",
+    "network": "Network",
+    "symbols": "Symbols",
+    "realizedPnl": "Realized PnL",
+    "feesPaid": "Fees Paid",
+    "netPnl": "Net PnL",
+    "killSwitch": "Kill Switch",
+    "wsConnectedValue": "Connected",
+    "wsDisconnectedValue": "Disconnected",
+    "killReason": "Kill reason: {reason}"
+  },
+  "symbols": {
+    "symbol": "Symbol",
+    "mid": "Mid",
+    "spreadBps": "Spread(bps)",
+    "imbalance": "Imbalance",
+    "vol": "Vol",
+    "stale": "Stale",
+    "abrupt": "Abrupt",
+    "bookOk": "Book OK",
+    "quoting": "Quoting",
+    "bidQuote": "Bid Quote",
+    "askQuote": "Ask Quote",
+    "updated": "Updated"
+  },
+  "orders": {
+    "symbol": "Symbol",
+    "side": "Side",
+    "price": "Price",
+    "size": "Size",
+    "filled": "Filled",
+    "tif": "TIF",
+    "kind": "Kind",
+    "status": "Status",
+    "exchangeOid": "ExchOID",
+    "created": "Created",
+    "rejectReason": "Reject Reason",
+    "sideValues": {
+      "buy": "BUY",
+      "sell": "SELL"
+    },
+    "tifValues": {
+      "Gtc": "GTC",
+      "Ioc": "IOC",
+      "Alo": "ALO"
+    },
+    "kindValues": {
+      "maker_quote": "Maker Quote",
+      "emergency_flatten": "Emergency Flatten"
+    },
+    "statusValues": {
+      "pending": "Pending",
+      "open": "Open",
+      "partially_filled": "Partially Filled",
+      "filled": "Filled",
+      "canceled": "Canceled",
+      "rejected": "Rejected",
+      "expired": "Expired"
+    }
+  },
+  "fills": {
+    "time": "Time",
+    "symbol": "Symbol",
+    "side": "Side",
+    "price": "Price",
+    "size": "Size",
+    "fee": "Fee",
+    "liquidity": "Liquidity",
+    "maker": "Maker",
+    "taker": "Taker"
+  },
+  "positions": {
+    "symbol": "Symbol",
+    "size": "Size",
+    "avgCost": "Avg Cost",
+    "unrealizedPnl": "Unrealized PnL",
+    "exposureUsd": "Exposure (USD)",
+    "skewBps": "Skew (bps)",
+    "longLimit": "Long Limit",
+    "shortLimit": "Short Limit"
+  },
+  "pnl": {
+    "realizedPnl": "Realized PnL",
+    "unrealizedPnl": "Unrealized PnL",
+    "feesPaid": "Fees Paid",
+    "netPnl": "Net PnL",
+    "dailyLossPct": "Daily Loss %",
+    "drawdownPct": "Drawdown %",
+    "dayStartEquity": "Day Start Equity"
+  },
+  "risk": {
+    "killSwitch": "Kill Switch",
+    "dailyLossLimit": "Daily Loss / Limit",
+    "drawdownLimit": "Drawdown / Limit",
+    "totalExposureLimit": "Total Exposure / Limit",
+    "rejectStreak": "Reject Streak",
+    "reconnectStreak": "Reconnect Streak",
+    "staleDataAgeMs": "Stale Data Age (ms)",
+    "abnormalSpread": "Abnormal Spread",
+    "abruptMove": "Abrupt Move",
+    "bookCorrupted": "Book Corrupted",
+    "reconnectValue": "{current} / {max} (total: {total})",
+    "staleValue": "{age}ms (limit: {threshold}ms)"
+  },
+  "events": {
+    "time": "Time",
+    "level": "Level",
+    "type": "Type",
+    "symbol": "Symbol",
+    "message": "Message",
+    "levelValues": {
+      "critical": "CRITICAL",
+      "error": "ERROR",
+      "warn": "WARN",
+      "info": "INFO",
+      "debug": "DEBUG"
+    }
+  },
+  "killReason": {
+    "daily_loss_exceeded": "Daily loss exceeded",
+    "intraday_drawdown_exceeded": "Intraday drawdown exceeded",
+    "stale_market_data": "Stale market data",
+    "reconnect_storm": "Reconnect storm",
+    "consecutive_rejects": "Consecutive rejects",
+    "abnormal_spread": "Abnormal spread",
+    "abrupt_price_move": "Abrupt price move",
+    "book_corrupted": "Book corrupted",
+    "manual": "Manual"
+  },
+  "dialog": {
+    "stopConfirm": "Run graceful stop?\nThe bot will finish the current cycle, cancel orders, and stop.",
+    "killConfirmPrimary": "[DANGER] Activate the emergency kill switch?\nPosition flattening will be attempted.",
+    "killConfirmSecondary": "Are you sure? This action cannot be undone."
+  },
+  "errors": {
+    "stopRequestFailed": "Stop request failed: {message}",
+    "killRequestFailed": "Kill request failed: {message}",
+    "pollFailed": "Error: {message}"
+  }
+}

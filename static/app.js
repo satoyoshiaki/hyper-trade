@@ -1,9 +1,13 @@
 /* HL Maker Bot Dashboard - Frontend polling logic */
 
 const POLL_INTERVAL_MS = 2000;
-let currentSection = 'overview';
+const DEFAULT_LOCALE = 'ja';
+const SUPPORTED_LOCALES = ['ja', 'en'];
 
-// --- Section navigation ---
+let currentSection = 'overview';
+let currentLocale = DEFAULT_LOCALE;
+let messages = {};
+
 function showSection(name) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
@@ -14,9 +18,67 @@ function showSection(name) {
   currentSection = name;
 }
 
-// --- Fetch helpers ---
-async function fetchJSON(url) {
-  const res = await fetch(url);
+function getMessage(key) {
+  return key.split('.').reduce((acc, part) => (acc && acc[part] !== undefined ? acc[part] : null), messages);
+}
+
+function t(key, vars = {}) {
+  const template = getMessage(key) ?? key;
+  return Object.entries(vars).reduce(
+    (text, [name, value]) => text.replaceAll(`{${name}}`, value),
+    String(template),
+  );
+}
+
+function setTextContent(node, value) {
+  if (!node) return;
+  if (node.tagName === 'TITLE') {
+    document.title = value;
+    return;
+  }
+  node.textContent = value;
+}
+
+function applyTranslations() {
+  document.documentElement.lang = currentLocale;
+  document.querySelectorAll('[data-i18n]').forEach(node => {
+    setTextContent(node, t(node.dataset.i18n));
+  });
+  document.querySelectorAll('[data-i18n-aria-label]').forEach(node => {
+    node.setAttribute('aria-label', t(node.dataset.i18nAriaLabel));
+  });
+}
+
+async function loadLocale(locale) {
+  const target = SUPPORTED_LOCALES.includes(locale) ? locale : DEFAULT_LOCALE;
+  const res = await fetch(`/static/locales/${target}.json`);
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status}`);
+  }
+  messages = await res.json();
+  currentLocale = target;
+  const select = document.getElementById('language-select');
+  if (select) select.value = currentLocale;
+  localStorage.setItem('dashboard.locale', currentLocale);
+  applyTranslations();
+}
+
+async function setLocale(locale) {
+  try {
+    await loadLocale(locale);
+  } catch (err) {
+    if (locale !== DEFAULT_LOCALE) {
+      await loadLocale(DEFAULT_LOCALE);
+      return;
+    }
+    throw err;
+  }
+}
+
+async function fetchJSON(url, options = {}) {
+  const headers = new Headers(options.headers || {});
+  headers.set('X-Dashboard-Language', currentLocale);
+  const res = await fetch(url, { ...options, headers });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
 }
@@ -24,27 +86,73 @@ async function fetchJSON(url) {
 function fmt(val, decimals = 4) {
   if (val === null || val === undefined) return '-';
   const n = parseFloat(val);
-  if (isNaN(n)) return val;
+  if (Number.isNaN(n)) return val;
   return n.toFixed(decimals);
 }
 
 function fmtTime(isoStr) {
   if (!isoStr) return '-';
-  return new Date(isoStr).toLocaleTimeString();
+  return new Date(isoStr).toLocaleTimeString(currentLocale);
 }
 
 function flag(val) {
   const cls = val ? 'flag-true' : 'flag-false';
-  return `<span class="${cls}">${val ? 'YES' : 'no'}</span>`;
+  return `<span class="${cls}">${val ? t('common.yes') : t('common.no')}</span>`;
 }
 
 function pnlClass(val) {
   const n = parseFloat(val);
-  if (isNaN(n)) return '';
+  if (Number.isNaN(n)) return '';
   return n > 0 ? 'positive' : n < 0 ? 'negative' : '';
 }
 
-// --- Header update ---
+function botStatusLabel(status) {
+  return t(`status.bot.${String(status || 'unknown').toLowerCase()}`);
+}
+
+function networkLabel(isTestnet) {
+  return isTestnet ? t('network.testnet') : t('network.mainnet');
+}
+
+function killSwitchLabel(active) {
+  return active ? t('common.active') : t('common.off');
+}
+
+function sideLabel(side) {
+  return t(`orders.sideValues.${String(side).toLowerCase()}`);
+}
+
+function tifLabel(value) {
+  return t(`orders.tifValues.${String(value)}`);
+}
+
+function kindLabel(value) {
+  return t(`orders.kindValues.${String(value)}`);
+}
+
+function orderStatusLabel(value) {
+  return t(`orders.statusValues.${String(value)}`);
+}
+
+function eventLevelLabel(value) {
+  return t(`events.levelValues.${String(value)}`);
+}
+
+function makerTakerLabel(isMaker) {
+  return isMaker ? t('fills.maker') : t('fills.taker');
+}
+
+function killReasonLabel(reason) {
+  return t(`killReason.${String(reason)}`);
+}
+
+function setCardValue(id, val, cls) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = val;
+  el.className = cls ? `card-value ${cls}` : 'card-value';
+}
+
 function updateHeader(overview) {
   const dot = document.getElementById('bot-status-indicator');
   const text = document.getElementById('bot-status-text');
@@ -53,48 +161,47 @@ function updateHeader(overview) {
 
   const status = overview.bot_status || 'unknown';
   dot.className = 'status-dot ' + status.toLowerCase();
-  text.textContent = status.toUpperCase();
+  text.textContent = botStatusLabel(status);
 
   if (overview.kill_switch_active) {
     ksBadge.className = 'badge badge-kill';
-    ksBadge.textContent = 'KillSwitch: ON';
+    ksBadge.textContent = t('header.killSwitchOn');
   } else {
     ksBadge.className = 'badge badge-ok';
-    ksBadge.textContent = 'KillSwitch: OFF';
+    ksBadge.textContent = t('header.killSwitchOff');
   }
 
   if (overview.testnet) {
     netBadge.className = 'badge badge-testnet';
-    netBadge.textContent = 'TESTNET';
   } else {
     netBadge.className = 'badge badge-mainnet';
-    netBadge.textContent = 'MAINNET';
   }
+  netBadge.textContent = networkLabel(overview.testnet);
 
-  document.getElementById('last-update').textContent = '更新: ' + new Date().toLocaleTimeString();
+  document.getElementById('last-update').textContent = t('header.lastUpdated', {
+    time: new Date().toLocaleTimeString(currentLocale),
+  });
 }
 
-// --- Section renderers ---
 function renderOverview(data) {
-  const set = (id, val, cls) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.textContent = val;
-    if (cls) el.className = 'card-value ' + cls;
-  };
-
-  set('ov-bot-status', data.bot_status);
-  set('ov-ws', data.ws_connected ? '✓ Connected' : '✗ Disconnected', data.ws_connected ? 'positive' : 'negative');
-  set('ov-network', data.testnet ? 'TESTNET' : 'MAINNET');
-  set('ov-symbols', (data.symbols || []).join(', '));
-  set('ov-realized', fmt(data.today_realized_pnl, 4) + ' USDC', pnlClass(data.today_realized_pnl));
-  set('ov-fees', fmt(data.today_fees, 4) + ' USDC');
-  set('ov-net', fmt(data.net_pnl, 4) + ' USDC', pnlClass(data.net_pnl));
-  set('ov-ks', data.kill_switch_active ? '🔴 ACTIVE' : '✓ OFF', data.kill_switch_active ? 'negative' : 'positive');
+  setCardValue('ov-bot-status', botStatusLabel(data.bot_status));
+  setCardValue(
+    'ov-ws',
+    data.ws_connected ? t('overview.wsConnectedValue') : t('overview.wsDisconnectedValue'),
+    data.ws_connected ? 'positive' : 'negative',
+  );
+  setCardValue('ov-network', networkLabel(data.testnet));
+  setCardValue('ov-symbols', (data.symbols || []).join(', '));
+  setCardValue('ov-realized', fmt(data.today_realized_pnl, 4) + ' USDC', pnlClass(data.today_realized_pnl));
+  setCardValue('ov-fees', fmt(data.today_fees, 4) + ' USDC');
+  setCardValue('ov-net', fmt(data.net_pnl, 4) + ' USDC', pnlClass(data.net_pnl));
+  setCardValue('ov-ks', killSwitchLabel(data.kill_switch_active), data.kill_switch_active ? 'negative' : 'positive');
 
   const ksReason = document.getElementById('ov-ks-reason');
   if (data.kill_switch_active && data.kill_switch_reason) {
-    ksReason.textContent = 'Kill reason: ' + data.kill_switch_reason;
+    ksReason.textContent = t('overview.killReason', {
+      reason: killReasonLabel(data.kill_switch_reason),
+    });
     ksReason.classList.remove('hidden');
   } else {
     ksReason.classList.add('hidden');
@@ -113,7 +220,7 @@ function renderSymbols(data) {
       <td>${flag(s.stale)}</td>
       <td>${flag(s.abrupt_move)}</td>
       <td>${flag(!s.book_corrupted)}</td>
-      <td>${s.quoting ? '<span class="positive">YES</span>' : '<span class="flag-false">no</span>'}</td>
+      <td>${s.quoting ? `<span class="positive">${t('common.yes')}</span>` : `<span class="flag-false">${t('common.no')}</span>`}</td>
       <td class="side-buy">${s.bid_quote ? fmt(s.bid_quote, 2) + ' x ' + fmt(s.bid_size, 4) : '-'}</td>
       <td class="side-sell">${s.ask_quote ? fmt(s.ask_quote, 2) + ' x ' + fmt(s.ask_size, 4) : '-'}</td>
       <td>${fmtTime(s.updated_at)}</td>
@@ -126,13 +233,13 @@ function renderOrders(data) {
   tbody.innerHTML = data.slice(0, 50).map(o => `
     <tr>
       <td>${o.symbol}</td>
-      <td class="side-${o.side}">${o.side.toUpperCase()}</td>
+      <td class="side-${o.side}">${sideLabel(o.side)}</td>
       <td>${fmt(o.price, 2)}</td>
       <td>${fmt(o.size, 4)}</td>
       <td>${fmt(o.filled_size, 4)}</td>
-      <td>${o.tif}</td>
-      <td>${o.kind}</td>
-      <td class="status-${o.status}">${o.status}</td>
+      <td>${tifLabel(o.tif)}</td>
+      <td>${kindLabel(o.kind)}</td>
+      <td class="status-${o.status}">${orderStatusLabel(o.status)}</td>
       <td>${o.exchange_oid || '-'}</td>
       <td>${fmtTime(o.created_at)}</td>
       <td>${o.reject_reason || ''}</td>
@@ -146,11 +253,11 @@ function renderFills(data) {
     <tr>
       <td>${fmtTime(f.filled_at)}</td>
       <td>${f.symbol}</td>
-      <td class="side-${f.side}">${f.side.toUpperCase()}</td>
+      <td class="side-${f.side}">${sideLabel(f.side)}</td>
       <td>${fmt(f.price, 2)}</td>
       <td>${fmt(f.size, 4)}</td>
       <td>${fmt(f.fee, 4)}</td>
-      <td>${f.is_maker ? '<span class="positive">M</span>' : '<span class="flag-true">T</span>'}</td>
+      <td>${f.is_maker ? `<span class="positive">${makerTakerLabel(true)}</span>` : `<span class="flag-true">${makerTakerLabel(false)}</span>`}</td>
     </tr>
   `).join('');
 }
@@ -172,41 +279,36 @@ function renderPositions(data) {
 }
 
 function renderPnl(data) {
-  const set = (id, val, cls) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.textContent = val;
-    if (cls) el.className = 'card-value ' + cls;
-  };
-  set('pnl-realized', fmt(data.realized_pnl, 4) + ' USDC', pnlClass(data.realized_pnl));
-  set('pnl-unrealized', fmt(data.unrealized_pnl, 4) + ' USDC', pnlClass(data.unrealized_pnl));
-  set('pnl-fees', fmt(data.fees_paid, 4) + ' USDC');
-  set('pnl-net', fmt(data.net_pnl, 4) + ' USDC', pnlClass(data.net_pnl));
-  set('pnl-daily-loss', fmt(data.daily_loss_pct, 3) + '%');
-  set('pnl-drawdown', fmt(data.intraday_drawdown_pct, 3) + '%');
-  set('pnl-equity', data.day_start_equity ? fmt(data.day_start_equity, 2) + ' USDC' : '-');
+  setCardValue('pnl-realized', fmt(data.realized_pnl, 4) + ' USDC', pnlClass(data.realized_pnl));
+  setCardValue('pnl-unrealized', fmt(data.unrealized_pnl, 4) + ' USDC', pnlClass(data.unrealized_pnl));
+  setCardValue('pnl-fees', fmt(data.fees_paid, 4) + ' USDC');
+  setCardValue('pnl-net', fmt(data.net_pnl, 4) + ' USDC', pnlClass(data.net_pnl));
+  setCardValue('pnl-daily-loss', fmt(data.daily_loss_pct, 3) + '%');
+  setCardValue('pnl-drawdown', fmt(data.intraday_drawdown_pct, 3) + '%');
+  setCardValue('pnl-equity', data.day_start_equity ? fmt(data.day_start_equity, 2) + ' USDC' : '-');
 }
 
 function renderRisk(data) {
-  const set = (id, val, cls) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.textContent = val;
-    if (cls) el.className = 'card-value ' + cls;
-  };
-  set('risk-ks', data.kill_switch_active ? '🔴 ACTIVE' : '✓ OFF', data.kill_switch_active ? 'negative' : 'positive');
-  set('risk-daily-loss', `${fmt(data.daily_loss_pct, 2)}% / ${fmt(data.daily_loss_limit_pct, 1)}%`);
-  set('risk-drawdown', `${fmt(data.intraday_drawdown_pct, 2)}% / ${fmt(data.drawdown_limit_pct, 1)}%`);
-  set('risk-exposure', `$${fmt(data.total_exposure_usd, 2)} / $${fmt(data.total_exposure_limit_usd, 0)}`);
-  set('risk-rejects', `${data.consecutive_rejects} / ${data.max_reject_streak}`);
-  set('risk-reconnect', `${data.reconnect_streak} / ${data.max_reconnect_streak} (total: ${data.reconnect_count})`);
-  set('risk-stale', `${data.stale_data_age_ms}ms (limit: ${data.stale_data_threshold_ms}ms)`);
+  setCardValue('risk-ks', killSwitchLabel(data.kill_switch_active), data.kill_switch_active ? 'negative' : 'positive');
+  setCardValue('risk-daily-loss', `${fmt(data.daily_loss_pct, 2)}% / ${fmt(data.daily_loss_limit_pct, 1)}%`);
+  setCardValue('risk-drawdown', `${fmt(data.intraday_drawdown_pct, 2)}% / ${fmt(data.drawdown_limit_pct, 1)}%`);
+  setCardValue('risk-exposure', `$${fmt(data.total_exposure_usd, 2)} / $${fmt(data.total_exposure_limit_usd, 0)}`);
+  setCardValue('risk-rejects', `${data.consecutive_rejects} / ${data.max_reject_streak}`);
+  setCardValue('risk-reconnect', t('risk.reconnectValue', {
+    current: String(data.reconnect_streak),
+    max: String(data.max_reconnect_streak),
+    total: String(data.reconnect_count),
+  }));
+  setCardValue('risk-stale', t('risk.staleValue', {
+    age: String(data.stale_data_age_ms),
+    threshold: String(data.stale_data_threshold_ms),
+  }));
   const spreadEl = document.getElementById('risk-spread');
-  if (spreadEl) { spreadEl.innerHTML = flag(data.abnormal_spread); }
+  if (spreadEl) spreadEl.innerHTML = flag(data.abnormal_spread);
   const abruptEl = document.getElementById('risk-abrupt');
-  if (abruptEl) { abruptEl.innerHTML = flag(data.abrupt_move); }
+  if (abruptEl) abruptEl.innerHTML = flag(data.abrupt_move);
   const bookEl = document.getElementById('risk-book');
-  if (bookEl) { bookEl.innerHTML = flag(data.book_corrupted); }
+  if (bookEl) bookEl.innerHTML = flag(data.book_corrupted);
 }
 
 function renderEvents(data) {
@@ -215,7 +317,7 @@ function renderEvents(data) {
   tbody.innerHTML = data.slice(0, 50).map(e => `
     <tr>
       <td>${fmtTime(e.occurred_at)}</td>
-      <td style="color:${levelColor[e.level] || '#aaa'}">${e.level.toUpperCase()}</td>
+      <td style="color:${levelColor[e.level] || '#aaa'}">${eventLevelLabel(e.level)}</td>
       <td>${e.event_type}</td>
       <td>${e.symbol || ''}</td>
       <td>${e.message}</td>
@@ -223,38 +325,32 @@ function renderEvents(data) {
   `).join('');
 }
 
-// --- Control actions ---
 async function requestStop() {
-  if (!confirm('Graceful stop を実行しますか？\n現在のサイクルを完了後、注文をキャンセルして停止します。')) return;
+  if (!confirm(t('dialog.stopConfirm'))) return;
   try {
-    const res = await fetch('/api/stop', { method: 'POST' });
-    const data = await res.json();
+    const data = await fetchJSON('/api/stop', { method: 'POST' });
     alert(data.message);
   } catch (e) {
-    alert('Stop request failed: ' + e.message);
+    alert(t('errors.stopRequestFailed', { message: e.message }));
   }
 }
 
 async function requestKill() {
-  if (!confirm('【危険】Emergency Kill Switch を発動しますか？\nポジションのフラット化が試行されます。')) return;
-  if (!confirm('本当に実行しますか？この操作は取り消せません。')) return;
+  if (!confirm(t('dialog.killConfirmPrimary'))) return;
+  if (!confirm(t('dialog.killConfirmSecondary'))) return;
   try {
-    const res = await fetch('/api/kill', { method: 'POST' });
-    const data = await res.json();
+    const data = await fetchJSON('/api/kill', { method: 'POST' });
     alert(data.message);
   } catch (e) {
-    alert('Kill request failed: ' + e.message);
+    alert(t('errors.killRequestFailed', { message: e.message }));
   }
 }
 
-// --- Main poll loop ---
 async function poll() {
   try {
-    // Always fetch overview for header
     const overview = await fetchJSON('/api/overview');
     updateHeader(overview);
 
-    // Fetch and render current section
     switch (currentSection) {
       case 'overview':
         renderOverview(overview);
@@ -282,10 +378,24 @@ async function poll() {
         break;
     }
   } catch (e) {
-    document.getElementById('last-update').textContent = 'エラー: ' + e.message;
+    document.getElementById('last-update').textContent = t('errors.pollFailed', { message: e.message });
   }
 }
 
-// Start polling
-poll();
-setInterval(poll, POLL_INTERVAL_MS);
+async function initDashboard() {
+  const preferredLocale = localStorage.getItem('dashboard.locale') || DEFAULT_LOCALE;
+  await setLocale(preferredLocale);
+
+  const languageSelect = document.getElementById('language-select');
+  if (languageSelect) {
+    languageSelect.addEventListener('change', async event => {
+      await setLocale(event.target.value);
+      await poll();
+    });
+  }
+
+  await poll();
+  setInterval(poll, POLL_INTERVAL_MS);
+}
+
+initDashboard();

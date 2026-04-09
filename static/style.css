@@ -23,7 +23,17 @@ header {
   flex-shrink: 0;
 }
 .header-left { display: flex; align-items: center; gap: 10px; }
-.header-right { color: #666; font-size: 11px; }
+.header-right { color: #666; font-size: 11px; display: flex; align-items: center; gap: 12px; }
+.language-switcher { display: flex; align-items: center; gap: 6px; color: #888; }
+.language-switcher select {
+  background: #1a1a1a;
+  color: #ccc;
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 3px 6px;
+  font-family: inherit;
+  font-size: 11px;
+}
 
 /* Status dot */
 .status-dot {

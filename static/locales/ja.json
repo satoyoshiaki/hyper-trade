@@ -1,0 +1,190 @@
+{
+  "meta": {
+    "title": "HL Maker Bot ダッシュボード",
+    "defaultLocale": "ja"
+  },
+  "header": {
+    "loading": "読み込み中...",
+    "updating": "更新中...",
+    "lastUpdated": "更新: {time}",
+    "killSwitchOn": "キルスイッチ: ON",
+    "killSwitchOff": "キルスイッチ: OFF"
+  },
+  "controls": {
+    "language": "言語",
+    "gracefulStop": "正常停止",
+    "emergencyKill": "緊急停止"
+  },
+  "nav": {
+    "overview": "概要",
+    "symbols": "銘柄",
+    "orders": "注文",
+    "fills": "約定",
+    "positions": "ポジション",
+    "pnl": "損益",
+    "risk": "リスク",
+    "events": "イベント"
+  },
+  "network": {
+    "testnet": "テストネット",
+    "mainnet": "メインネット"
+  },
+  "common": {
+    "yes": "はい",
+    "no": "いいえ",
+    "active": "有効",
+    "off": "OFF"
+  },
+  "status": {
+    "bot": {
+      "starting": "起動中",
+      "running": "稼働中",
+      "paused": "一時停止",
+      "stopping": "停止処理中",
+      "stopped": "停止",
+      "error": "エラー",
+      "unknown": "不明"
+    }
+  },
+  "overview": {
+    "botStatus": "ボット状態",
+    "wsConnected": "WS 接続",
+    "network": "ネットワーク",
+    "symbols": "銘柄",
+    "realizedPnl": "実現損益",
+    "feesPaid": "支払手数料",
+    "netPnl": "純損益",
+    "killSwitch": "キルスイッチ",
+    "wsConnectedValue": "接続済み",
+    "wsDisconnectedValue": "未接続",
+    "killReason": "停止理由: {reason}"
+  },
+  "symbols": {
+    "symbol": "銘柄",
+    "mid": "仲値",
+    "spreadBps": "スプレッド(bps)",
+    "imbalance": "インバランス",
+    "vol": "ボラティリティ",
+    "stale": "陳腐化",
+    "abrupt": "急変動",
+    "bookOk": "板正常",
+    "quoting": "見積中",
+    "bidQuote": "買い気配",
+    "askQuote": "売り気配",
+    "updated": "更新時刻"
+  },
+  "orders": {
+    "symbol": "銘柄",
+    "side": "売買",
+    "price": "価格",
+    "size": "数量",
+    "filled": "約定済み",
+    "tif": "TIF",
+    "kind": "種別",
+    "status": "状態",
+    "exchangeOid": "ExchOID",
+    "created": "作成時刻",
+    "rejectReason": "拒否理由",
+    "sideValues": {
+      "buy": "買い",
+      "sell": "売り"
+    },
+    "tifValues": {
+      "Gtc": "GTC",
+      "Ioc": "IOC",
+      "Alo": "ALO"
+    },
+    "kindValues": {
+      "maker_quote": "メイカー見積",
+      "emergency_flatten": "緊急クローズ"
+    },
+    "statusValues": {
+      "pending": "受付中",
+      "open": "発注中",
+      "partially_filled": "一部約定",
+      "filled": "約定済み",
+      "canceled": "取消済み",
+      "rejected": "拒否",
+      "expired": "期限切れ"
+    }
+  },
+  "fills": {
+    "time": "時刻",
+    "symbol": "銘柄",
+    "side": "売買",
+    "price": "価格",
+    "size": "数量",
+    "fee": "手数料",
+    "liquidity": "執行区分",
+    "maker": "メイカー",
+    "taker": "テイカー"
+  },
+  "positions": {
+    "symbol": "銘柄",
+    "size": "数量",
+    "avgCost": "平均建値",
+    "unrealizedPnl": "含み損益",
+    "exposureUsd": "エクスポージャー (USD)",
+    "skewBps": "スキュー (bps)",
+    "longLimit": "ロング上限",
+    "shortLimit": "ショート上限"
+  },
+  "pnl": {
+    "realizedPnl": "実現損益",
+    "unrealizedPnl": "含み損益",
+    "feesPaid": "支払手数料",
+    "netPnl": "純損益",
+    "dailyLossPct": "日次損失 %",
+    "drawdownPct": "ドローダウン %",
+    "dayStartEquity": "当日開始時純資産"
+  },
+  "risk": {
+    "killSwitch": "キルスイッチ",
+    "dailyLossLimit": "日次損失 / 上限",
+    "drawdownLimit": "ドローダウン / 上限",
+    "totalExposureLimit": "総エクスポージャー / 上限",
+    "rejectStreak": "連続拒否回数",
+    "reconnectStreak": "再接続回数",
+    "staleDataAgeMs": "古いデータの経過時間 (ms)",
+    "abnormalSpread": "異常スプレッド",
+    "abruptMove": "急変動",
+    "bookCorrupted": "板破損",
+    "reconnectValue": "{current} / {max} (合計: {total})",
+    "staleValue": "{age}ms (上限: {threshold}ms)"
+  },
+  "events": {
+    "time": "時刻",
+    "level": "レベル",
+    "type": "種別",
+    "symbol": "銘柄",
+    "message": "メッセージ",
+    "levelValues": {
+      "critical": "重大",
+      "error": "エラー",
+      "warn": "警告",
+      "info": "情報",
+      "debug": "デバッグ"
+    }
+  },
+  "killReason": {
+    "daily_loss_exceeded": "日次損失上限超過",
+    "intraday_drawdown_exceeded": "日中ドローダウン上限超過",
+    "stale_market_data": "市場データ陳腐化",
+    "reconnect_storm": "再接続過多",
+    "consecutive_rejects": "連続拒否",
+    "abnormal_spread": "異常スプレッド",
+    "abrupt_price_move": "急激な価格変動",
+    "book_corrupted": "板破損",
+    "manual": "手動"
+  },
+  "dialog": {
+    "stopConfirm": "正常停止を実行しますか？\n現在のサイクルを完了後、注文をキャンセルして停止します。",
+    "killConfirmPrimary": "【危険】緊急キルスイッチを発動しますか？\nポジションのフラット化が試行されます。",
+    "killConfirmSecondary": "本当に実行しますか？この操作は取り消せません。"
+  },
+  "errors": {
+    "stopRequestFailed": "停止リクエストに失敗しました: {message}",
+    "killRequestFailed": "キルリクエストに失敗しました: {message}",
+    "pollFailed": "エラー: {message}"
+  }
+}

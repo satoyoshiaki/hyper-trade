@@ -38,6 +38,20 @@ _templates: Jinja2Templates | None = None
 _dashboard_state: DashboardState | None = None
 _settings: Settings | None = None
 _started_at: datetime = datetime.now(tz=timezone.utc)
+_UI_MESSAGES = {
+    "en": {
+        "dashboard_not_configured": "Dashboard not configured",
+        "kill_switch_already_active": "Kill switch already active.",
+        "graceful_stop_requested": "Graceful stop requested.",
+        "emergency_kill_activated": "Emergency kill switch activated.",
+    },
+    "ja": {
+        "dashboard_not_configured": "ダッシュボードが設定されていません",
+        "kill_switch_already_active": "キルスイッチはすでに有効です。",
+        "graceful_stop_requested": "正常停止を受け付けました。",
+        "emergency_kill_activated": "緊急キルスイッチを有効化しました。",
+    },
+}
 
 
 def setup_routes(
@@ -58,22 +72,41 @@ def _ds() -> DashboardState:
     return _dashboard_state
 
 
+def _preferred_locale(request: Request | None) -> str:
+    if request is None:
+        return "ja"
+
+    requested = (
+        request.query_params.get("lang")
+        or request.headers.get("X-Dashboard-Language")
+        or request.headers.get("Accept-Language", "")
+    )
+    requested = requested.lower()
+    return "ja" if requested.startswith("ja") else "en"
+
+
+def _ui_message(key: str, request: Request | None = None) -> str:
+    locale = _preferred_locale(request)
+    return _UI_MESSAGES.get(locale, _UI_MESSAGES["ja"]).get(key, key)
+
+
 # ------------------------------------------------------------------
 # UI
 # ------------------------------------------------------------------
 
 @router.get("/", response_class=HTMLResponse, include_in_schema=False)
 async def index(request: Request):
-    if _templates is None:
-        return HTMLResponse("<h1>Dashboard not configured</h1>", status_code=500)
-    try:
-        return _templates.TemplateResponse("index.html", {"request": request})
-    except Exception:
-        # Fallback: serve as plain HTML (no template variables used)
-        from pathlib import Path
-        html_path = Path(__file__).resolve().parent.parent.parent / "templates" / "index.html"
-        html = html_path.read_text(encoding="utf-8")
-        return HTMLResponse(content=html)
+    from pathlib import Path
+
+    html_path = Path(__file__).resolve().parent.parent.parent / "templates" / "index.html"
+    if not html_path.exists():
+        return HTMLResponse(
+            f"<h1>{_ui_message('dashboard_not_configured', request)}</h1>",
+            status_code=500,
+        )
+
+    html = html_path.read_text(encoding="utf-8")
+    return HTMLResponse(content=html)
 
 
 # ------------------------------------------------------------------
@@ -141,7 +174,7 @@ async def get_events():
 # ------------------------------------------------------------------
 
 @router.post("/api/stop", response_model=StopResponse)
-async def graceful_stop():
+async def graceful_stop(request: Request):
     """
     Request a graceful stop. Bot finishes current cycle, cancels orders, exits.
     Does NOT trigger emergency flatten.
@@ -149,14 +182,20 @@ async def graceful_stop():
     ds = _ds()
     state = ds._state
     if state.kill_switch_active:
-        return StopResponse(accepted=False, message="Kill switch already active.")
+        return StopResponse(
+            accepted=False,
+            message=_ui_message("kill_switch_already_active", request),
+        )
     # Signal graceful stop by activating kill switch with MANUAL reason
     await state.activate_kill_switch(KillReason.MANUAL, "Graceful stop requested via dashboard")
-    return StopResponse(accepted=True, message="Graceful stop requested.")
+    return StopResponse(
+        accepted=True,
+        message=_ui_message("graceful_stop_requested", request),
+    )
 
 
 @router.post("/api/kill", response_model=StopResponse)
-async def emergency_kill():
+async def emergency_kill(request: Request):
     """
     Activate emergency kill switch. Triggers position flatten if configured.
     Use with caution.
@@ -164,6 +203,12 @@ async def emergency_kill():
     ds = _ds()
     state = ds._state
     if state.kill_switch_active:
-        return StopResponse(accepted=False, message="Kill switch already active.")
+        return StopResponse(
+            accepted=False,
+            message=_ui_message("kill_switch_already_active", request),
+        )
     await state.activate_kill_switch(KillReason.MANUAL, "Emergency kill via dashboard")
-    return StopResponse(accepted=True, message="Emergency kill switch activated.")
+    return StopResponse(
+        accepted=True,
+        message=_ui_message("emergency_kill_activated", request),
+    )

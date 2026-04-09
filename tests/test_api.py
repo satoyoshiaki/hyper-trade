@@ -43,6 +43,22 @@ class TestHealth:
         assert "signature" not in body
 
 
+class TestDashboardUi:
+    def test_index_contains_language_selector(self, client):
+        res = client.get("/")
+        assert res.status_code == 200
+        body = res.text
+        assert 'id="language-select"' in body
+        assert 'data-i18n="nav.overview"' in body
+
+    def test_japanese_locale_file_is_served(self, client):
+        res = client.get("/static/locales/ja.json")
+        assert res.status_code == 200
+        data = res.json()
+        assert data["meta"]["defaultLocale"] == "ja"
+        assert data["nav"]["overview"] == "概要"
+
+
 class TestOverview:
     def test_overview_returns_200(self, client):
         res = client.get("/api/overview")
@@ -155,3 +171,9 @@ class TestControlEndpoints:
         assert res.status_code == 200
         data = res.json()
         assert data["accepted"] is True
+
+    def test_stop_returns_localized_message_for_japanese(self, client):
+        res = client.post("/api/stop", headers={"X-Dashboard-Language": "ja"})
+        assert res.status_code == 200
+        data = res.json()
+        assert data["message"] == "正常停止を受け付けました。"

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HL Maker Bot Dashboard</title>
+  <title data-i18n="meta.title">HL Maker Bot Dashboard</title>
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
@@ -11,12 +11,19 @@
   <header id="header">
     <div class="header-left">
       <span id="bot-status-indicator" class="status-dot"></span>
-      <strong id="bot-status-text">LOADING...</strong>
-      <span id="network-badge" class="badge badge-testnet">TESTNET</span>
-      <span id="ks-badge" class="badge badge-ok">KillSwitch: OFF</span>
+      <strong id="bot-status-text" data-i18n="header.loading">読み込み中...</strong>
+      <span id="network-badge" class="badge badge-testnet" data-i18n="network.testnet">テストネット</span>
+      <span id="ks-badge" class="badge badge-ok" data-i18n="header.killSwitchOff">キルスイッチ: OFF</span>
     </div>
     <div class="header-right">
-      <span id="last-update">更新中...</span>
+      <label class="language-switcher">
+        <span data-i18n="controls.language">言語</span>
+        <select id="language-select" aria-label="言語" data-i18n-aria-label="controls.language">
+          <option value="ja">日本語</option>
+          <option value="en">English</option>
+        </select>
+      </label>
+      <span id="last-update" data-i18n="header.updating">更新中...</span>
     </div>
   </header>
 
@@ -25,14 +32,14 @@
     <!-- Sidebar nav -->
     <nav class="sidebar">
       <ul>
-        <li><a href="#" onclick="showSection('overview')" class="nav-link active">Overview</a></li>
-        <li><a href="#" onclick="showSection('symbols')" class="nav-link">Symbols</a></li>
-        <li><a href="#" onclick="showSection('orders')" class="nav-link">Orders</a></li>
-        <li><a href="#" onclick="showSection('fills')" class="nav-link">Fills</a></li>
-        <li><a href="#" onclick="showSection('positions')" class="nav-link">Positions</a></li>
-        <li><a href="#" onclick="showSection('pnl')" class="nav-link">PnL</a></li>
-        <li><a href="#" onclick="showSection('risk')" class="nav-link">Risk</a></li>
-        <li><a href="#" onclick="showSection('events')" class="nav-link">Events</a></li>
+        <li><a href="#" onclick="showSection('overview')" class="nav-link active" data-i18n="nav.overview">概要</a></li>
+        <li><a href="#" onclick="showSection('symbols')" class="nav-link" data-i18n="nav.symbols">銘柄</a></li>
+        <li><a href="#" onclick="showSection('orders')" class="nav-link" data-i18n="nav.orders">注文</a></li>
+        <li><a href="#" onclick="showSection('fills')" class="nav-link" data-i18n="nav.fills">約定</a></li>
+        <li><a href="#" onclick="showSection('positions')" class="nav-link" data-i18n="nav.positions">ポジション</a></li>
+        <li><a href="#" onclick="showSection('pnl')" class="nav-link" data-i18n="nav.pnl">損益</a></li>
+        <li><a href="#" onclick="showSection('risk')" class="nav-link" data-i18n="nav.risk">リスク</a></li>
+        <li><a href="#" onclick="showSection('events')" class="nav-link" data-i18n="nav.events">イベント</a></li>
       </ul>
     </nav>
 
@@ -41,31 +48,31 @@
 
       <!-- Overview -->
       <section id="section-overview" class="section active">
-        <h2>Overview</h2>
+        <h2 data-i18n="nav.overview">概要</h2>
         <div class="card-grid">
-          <div class="card"><div class="card-label">Bot Status</div><div class="card-value" id="ov-bot-status">-</div></div>
-          <div class="card"><div class="card-label">WS Connected</div><div class="card-value" id="ov-ws">-</div></div>
-          <div class="card"><div class="card-label">Network</div><div class="card-value" id="ov-network">-</div></div>
-          <div class="card"><div class="card-label">Symbols</div><div class="card-value" id="ov-symbols">-</div></div>
-          <div class="card"><div class="card-label">Realized PnL</div><div class="card-value" id="ov-realized">-</div></div>
-          <div class="card"><div class="card-label">Fees Paid</div><div class="card-value" id="ov-fees">-</div></div>
-          <div class="card"><div class="card-label">Net PnL</div><div class="card-value" id="ov-net">-</div></div>
-          <div class="card"><div class="card-label">Kill Switch</div><div class="card-value" id="ov-ks">-</div></div>
+          <div class="card"><div class="card-label" data-i18n="overview.botStatus">ボット状態</div><div class="card-value" id="ov-bot-status">-</div></div>
+          <div class="card"><div class="card-label" data-i18n="overview.wsConnected">WS 接続</div><div class="card-value" id="ov-ws">-</div></div>
+          <div class="card"><div class="card-label" data-i18n="overview.network">ネットワーク</div><div class="card-value" id="ov-network">-</div></div>
+          <div class="card"><div class="card-label" data-i18n="overview.symbols">銘柄</div><div class="card-value" id="ov-symbols">-</div></div>
+          <div class="card"><div class="card-label" data-i18n="overview.realizedPnl">実現損益</div><div class="card-value" id="ov-realized">-</div></div>
+          <div class="card"><div class="card-label" data-i18n="overview.feesPaid">支払手数料</div><div class="card-value" id="ov-fees">-</div></div>
+          <div class="card"><div class="card-label" data-i18n="overview.netPnl">純損益</div><div class="card-value" id="ov-net">-</div></div>
+          <div class="card"><div class="card-label" data-i18n="overview.killSwitch">キルスイッチ</div><div class="card-value" id="ov-ks">-</div></div>
         </div>
         <div id="ov-ks-reason" class="alert alert-danger hidden"></div>
       </section>
 
       <!-- Symbols -->
       <section id="section-symbols" class="section">
-        <h2>Symbols</h2>
+        <h2 data-i18n="nav.symbols">銘柄</h2>
         <table id="symbols-table">
           <thead>
             <tr>
-              <th>Symbol</th><th>Mid</th><th>Spread(bps)</th>
-              <th>Imbalance</th><th>Vol</th>
-              <th>Stale</th><th>Abrupt</th><th>Book OK</th>
-              <th>Quoting</th><th>Bid Quote</th><th>Ask Quote</th>
-              <th>Updated</th>
+              <th data-i18n="symbols.symbol">銘柄</th><th data-i18n="symbols.mid">仲値</th><th data-i18n="symbols.spreadBps">スプレッド(bps)</th>
+              <th data-i18n="symbols.imbalance">インバランス</th><th data-i18n="symbols.vol">ボラティリティ</th>
+              <th data-i18n="symbols.stale">陳腐化</th><th data-i18n="symbols.abrupt">急変動</th><th data-i18n="symbols.bookOk">板正常</th>
+              <th data-i18n="symbols.quoting">見積中</th><th data-i18n="symbols.bidQuote">買い気配</th><th data-i18n="symbols.askQuote">売り気配</th>
+              <th data-i18n="symbols.updated">更新時刻</th>
             </tr>
           </thead>
           <tbody id="symbols-tbody"></tbody>
@@ -74,13 +81,13 @@
 
       <!-- Orders -->
       <section id="section-orders" class="section">
-        <h2>Orders</h2>
+        <h2 data-i18n="nav.orders">注文</h2>
         <table id="orders-table">
           <thead>
             <tr>
-              <th>Symbol</th><th>Side</th><th>Price</th><th>Size</th>
-              <th>Filled</th><th>TIF</th><th>Kind</th><th>Status</th>
-              <th>ExchOID</th><th>Created</th><th>Reject Reason</th>
+              <th data-i18n="orders.symbol">銘柄</th><th data-i18n="orders.side">売買</th><th data-i18n="orders.price">価格</th><th data-i18n="orders.size">数量</th>
+              <th data-i18n="orders.filled">約定済み</th><th data-i18n="orders.tif">TIF</th><th data-i18n="orders.kind">種別</th><th data-i18n="orders.status">状態</th>
+              <th data-i18n="orders.exchangeOid">ExchOID</th><th data-i18n="orders.created">作成時刻</th><th data-i18n="orders.rejectReason">拒否理由</th>
             </tr>
           </thead>
           <tbody id="orders-tbody"></tbody>
@@ -89,12 +96,12 @@
 
       <!-- Fills -->
       <section id="section-fills" class="section">
-        <h2>Fills</h2>
+        <h2 data-i18n="nav.fills">約定</h2>
         <table id="fills-table">
           <thead>
             <tr>
-              <th>Time</th><th>Symbol</th><th>Side</th>
-              <th>Price</th><th>Size</th><th>Fee</th><th>Maker</th>
+              <th data-i18n="fills.time">時刻</th><th data-i18n="fills.symbol">銘柄</th><th data-i18n="fills.side">売買</th>
+              <th data-i18n="fills.price">価格</th><th data-i18n="fills.size">数量</th><th data-i18n="fills.fee">手数料</th><th data-i18n="fills.liquidity">執行区分</th>
             </tr>
           </thead>
           <tbody id="fills-tbody"></tbody>
@@ -103,13 +110,13 @@
 
       <!-- Positions -->
       <section id="section-positions" class="section">
-        <h2>Positions</h2>
+        <h2 data-i18n="nav.positions">ポジション</h2>
         <table id="positions-table">
           <thead>
             <tr>
-              <th>Symbol</th><th>Size</th><th>Avg Cost</th>
-              <th>Unrealized PnL</th><th>Exposure (USD)</th>
-              <th>Skew (bps)</th><th>Long Limit</th><th>Short Limit</th>
+              <th data-i18n="positions.symbol">銘柄</th><th data-i18n="positions.size">数量</th><th data-i18n="positions.avgCost">平均建値</th>
+              <th data-i18n="positions.unrealizedPnl">含み損益</th><th data-i18n="positions.exposureUsd">エクスポージャー (USD)</th>
+              <th data-i18n="positions.skewBps">スキュー (bps)</th><th data-i18n="positions.longLimit">ロング上限</th><th data-i18n="positions.shortLimit">ショート上限</th>
             </tr>
           </thead>
           <tbody id="positions-tbody"></tbody>
@@ -118,41 +125,41 @@
 
       <!-- PnL -->
       <section id="section-pnl" class="section">
-        <h2>PnL</h2>
+        <h2 data-i18n="nav.pnl">損益</h2>
         <div class="card-grid">
-          <div class="card"><div class="card-label">Realized PnL</div><div class="card-value" id="pnl-realized">-</div></div>
-          <div class="card"><div class="card-label">Unrealized PnL</div><div class="card-value" id="pnl-unrealized">-</div></div>
-          <div class="card"><div class="card-label">Fees Paid</div><div class="card-value" id="pnl-fees">-</div></div>
-          <div class="card"><div class="card-label">Net PnL</div><div class="card-value" id="pnl-net">-</div></div>
-          <div class="card"><div class="card-label">Daily Loss %</div><div class="card-value" id="pnl-daily-loss">-</div></div>
-          <div class="card"><div class="card-label">Drawdown %</div><div class="card-value" id="pnl-drawdown">-</div></div>
-          <div class="card"><div class="card-label">Day Start Equity</div><div class="card-value" id="pnl-equity">-</div></div>
+          <div class="card"><div class="card-label" data-i18n="pnl.realizedPnl">実現損益</div><div class="card-value" id="pnl-realized">-</div></div>
+          <div class="card"><div class="card-label" data-i18n="pnl.unrealizedPnl">含み損益</div><div class="card-value" id="pnl-unrealized">-</div></div>
+          <div class="card"><div class="card-label" data-i18n="pnl.feesPaid">支払手数料</div><div class="card-value" id="pnl-fees">-</div></div>
+          <div class="card"><div class="card-label" data-i18n="pnl.netPnl">純損益</div><div class="card-value" id="pnl-net">-</div></div>
+          <div class="card"><div class="card-label" data-i18n="pnl.dailyLossPct">日次損失 %</div><div class="card-value" id="pnl-daily-loss">-</div></div>
+          <div class="card"><div class="card-label" data-i18n="pnl.drawdownPct">ドローダウン %</div><div class="card-value" id="pnl-drawdown">-</div></div>
+          <div class="card"><div class="card-label" data-i18n="pnl.dayStartEquity">当日開始時純資産</div><div class="card-value" id="pnl-equity">-</div></div>
         </div>
       </section>
 
       <!-- Risk -->
       <section id="section-risk" class="section">
-        <h2>Risk</h2>
+        <h2 data-i18n="nav.risk">リスク</h2>
         <div class="card-grid">
-          <div class="card"><div class="card-label">Kill Switch</div><div class="card-value" id="risk-ks">-</div></div>
-          <div class="card"><div class="card-label">Daily Loss / Limit</div><div class="card-value" id="risk-daily-loss">-</div></div>
-          <div class="card"><div class="card-label">Drawdown / Limit</div><div class="card-value" id="risk-drawdown">-</div></div>
-          <div class="card"><div class="card-label">Total Exposure / Limit</div><div class="card-value" id="risk-exposure">-</div></div>
-          <div class="card"><div class="card-label">Reject Streak</div><div class="card-value" id="risk-rejects">-</div></div>
-          <div class="card"><div class="card-label">Reconnect Streak</div><div class="card-value" id="risk-reconnect">-</div></div>
-          <div class="card"><div class="card-label">Stale Data Age (ms)</div><div class="card-value" id="risk-stale">-</div></div>
-          <div class="card"><div class="card-label">Abnormal Spread</div><div class="card-value" id="risk-spread">-</div></div>
-          <div class="card"><div class="card-label">Abrupt Move</div><div class="card-value" id="risk-abrupt">-</div></div>
-          <div class="card"><div class="card-label">Book Corrupted</div><div class="card-value" id="risk-book">-</div></div>
+          <div class="card"><div class="card-label" data-i18n="risk.killSwitch">キルスイッチ</div><div class="card-value" id="risk-ks">-</div></div>
+          <div class="card"><div class="card-label" data-i18n="risk.dailyLossLimit">日次損失 / 上限</div><div class="card-value" id="risk-daily-loss">-</div></div>
+          <div class="card"><div class="card-label" data-i18n="risk.drawdownLimit">ドローダウン / 上限</div><div class="card-value" id="risk-drawdown">-</div></div>
+          <div class="card"><div class="card-label" data-i18n="risk.totalExposureLimit">総エクスポージャー / 上限</div><div class="card-value" id="risk-exposure">-</div></div>
+          <div class="card"><div class="card-label" data-i18n="risk.rejectStreak">連続拒否回数</div><div class="card-value" id="risk-rejects">-</div></div>
+          <div class="card"><div class="card-label" data-i18n="risk.reconnectStreak">再接続回数</div><div class="card-value" id="risk-reconnect">-</div></div>
+          <div class="card"><div class="card-label" data-i18n="risk.staleDataAgeMs">古いデータの経過時間 (ms)</div><div class="card-value" id="risk-stale">-</div></div>
+          <div class="card"><div class="card-label" data-i18n="risk.abnormalSpread">異常スプレッド</div><div class="card-value" id="risk-spread">-</div></div>
+          <div class="card"><div class="card-label" data-i18n="risk.abruptMove">急変動</div><div class="card-value" id="risk-abrupt">-</div></div>
+          <div class="card"><div class="card-label" data-i18n="risk.bookCorrupted">板破損</div><div class="card-value" id="risk-book">-</div></div>
         </div>
       </section>
 
       <!-- Events -->
       <section id="section-events" class="section">
-        <h2>Events</h2>
+        <h2 data-i18n="nav.events">イベント</h2>
         <table id="events-table">
           <thead>
-            <tr><th>Time</th><th>Level</th><th>Type</th><th>Symbol</th><th>Message</th></tr>
+            <tr><th data-i18n="events.time">時刻</th><th data-i18n="events.level">レベル</th><th data-i18n="events.type">種別</th><th data-i18n="events.symbol">銘柄</th><th data-i18n="events.message">メッセージ</th></tr>
           </thead>
           <tbody id="events-tbody"></tbody>
         </table>
@@ -163,8 +170,8 @@
 
   <!-- Control buttons -->
   <footer class="controls">
-    <button class="btn btn-warn" onclick="requestStop()">Graceful Stop</button>
-    <button class="btn btn-danger" onclick="requestKill()">Emergency Kill</button>
+    <button class="btn btn-warn" onclick="requestStop()" data-i18n="controls.gracefulStop">正常停止</button>
+    <button class="btn btn-danger" onclick="requestKill()" data-i18n="controls.emergencyKill">緊急停止</button>
   </footer>
 
   <script src="/static/app.js"></script>
