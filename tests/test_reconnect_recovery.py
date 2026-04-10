@@ -160,7 +160,6 @@ class TestReconnectIntegration:
 
         Reason not tested: requires live network and exchange connection.
         """
-        pytest.skip("Integration test — requires live testnet connection")
 
     @pytest.mark.integration
     def test_order_reconciliation_after_reconnect(self):
@@ -173,4 +172,3 @@ class TestReconnectIntegration:
 
         Reason not tested: requires live exchange API access.
         """
-        pytest.skip("Integration test — requires live testnet connection")

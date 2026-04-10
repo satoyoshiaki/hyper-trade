@@ -71,8 +71,13 @@ class ExchangeClient:
         # ASSUMPTION: base_url kwarg is accepted; testnet URL is correct
         base_url = self._settings.api_url
 
-        self._info = Info(base_url=base_url, skip_ws=True)
-        self._exchange = Exchange(wallet=wallet, base_url=base_url)
+        try:
+            self._info = Info(base_url=base_url, skip_ws=True)
+            self._exchange = Exchange(wallet=wallet, base_url=base_url)
+        except Exception as exc:
+            raise ExchangeClientError(
+                f"Failed to initialize Hyperliquid clients for {base_url}: {exc}"
+            ) from exc
 
         log.info(
             "ExchangeClient connected. testnet=%s url=%s",

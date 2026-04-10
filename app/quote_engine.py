@@ -93,7 +93,7 @@ class QuoteEngine:
         )
 
         # --- Min edge check ---
-        if half_spread_bps < self._settings.min_edge_bps / 2:
+        if half_spread_bps < self._settings.min_edge_bps / Decimal("3"):
             return QuoteResult(None, NoQuoteReason.MIN_EDGE_NOT_MET)
 
         mid = market.mid
@@ -101,7 +101,12 @@ class QuoteEngine:
         # --- Apply inventory skew to shift quotes asymmetrically ---
         # Positive skew (long): push ask up (harder to buy more), pull bid down
         # Negative skew (short): push bid down (harder to sell more), pull ask up
-        skew_offset_bps = inventory_skew_bps
+        skew_multiplier = (
+            Decimal("1")
+            + self._settings.imbalance_weight
+            + abs(market.imbalance) * self._settings.imbalance_weight
+        )
+        skew_offset_bps = inventory_skew_bps * skew_multiplier
         skew_offset = mid * skew_offset_bps / Decimal("10000")
 
         half_spread = mid * half_spread_bps / Decimal("10000")
@@ -189,29 +194,41 @@ class QuoteEngine:
         inventory_skew_bps: Decimal,
     ) -> Decimal:
         """
-        half_spread = base / 2
-                    + vol_component
+        half_spread = dynamic_base / 2
                     + imbalance_component
         Inventory skew is handled separately (shifts prices, not spread).
         """
-        base_half = self._settings.base_spread_bps / 2
-
-        # Vol widens the spread
-        # vol is in return units; convert to bps-like units
-        vol_bps = short_term_vol * 10000 * self._settings.vol_multiplier
-        vol_component = vol_bps / 2
+        dynamic_base_spread_bps = self._dynamic_base_spread_bps(short_term_vol)
+        effective_base_spread_bps = max(dynamic_base_spread_bps, market_spread_bps)
+        base_half = effective_base_spread_bps / 2
 
         # Imbalance: positive imbalance (bid-heavy) → raise bid side to reduce fill risk
         # We widen the half-spread proportionally
         imbalance_component = (
             abs(imbalance)
             * self._settings.imbalance_weight
-            * self._settings.base_spread_bps
+            * effective_base_spread_bps
             / 2
         )
 
-        half_spread = base_half + vol_component + imbalance_component
-        return half_spread
+        return base_half + imbalance_component
+
+    def _dynamic_base_spread_bps(self, short_term_vol: Decimal) -> Decimal:
+        """
+        Convert realized vol into a spread adjustment and clamp it into a sane range.
+        Low vol narrows spreads modestly, high vol widens them.
+        """
+        vol_bps = short_term_vol * Decimal("10000") * self._settings.vol_multiplier
+        min_spread = max(
+            self._settings.min_edge_bps * Decimal("0.8"),
+            self._settings.base_spread_bps * Decimal("0.6"),
+        )
+        max_spread = min(
+            self._settings.base_spread_bps * self._settings.abnormal_spread_multiplier / Decimal("2"),
+            self._settings.base_spread_bps * Decimal("3"),
+        )
+        dynamic_spread = self._settings.base_spread_bps + vol_bps
+        return max(min_spread, min(max_spread, dynamic_spread))
 
     def _round_price(self, price: Decimal, tick_size: Decimal, side: Side) -> Decimal:
         """

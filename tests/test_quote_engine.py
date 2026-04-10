@@ -134,6 +134,38 @@ class TestInventorySkew:
         assert result_short.quote.bid_price >= result_neutral.quote.bid_price
         assert result_short.quote.ask_price >= result_neutral.quote.ask_price
 
+    def test_inventory_skew_is_more_aggressive_than_raw_skew(self, settings, btc_market):
+        qe = make_engine(settings)
+        result_neutral = qe.compute_quote("BTC", btc_market, inventory_skew_bps=Decimal("0"))
+        result_long = qe.compute_quote("BTC", btc_market, inventory_skew_bps=Decimal("10"))
+        shift_bps = (
+            (result_neutral.quote.bid_price - result_long.quote.bid_price)
+            / btc_market.mid
+            * Decimal("10000")
+        )
+        assert shift_bps > Decimal("10")
+
+
+class TestDynamicSpread:
+    def test_high_vol_widens_quotes(self, settings, btc_market):
+        qe = make_engine(settings)
+        low_vol_market = btc_market
+        high_vol_market = MarketSnapshot(**{**btc_market.__dict__, "short_term_vol": Decimal("0.002")})
+        low_vol_market.short_term_vol = Decimal("0.00001")
+
+        low_vol_quote = qe.compute_quote("BTC", low_vol_market, inventory_skew_bps=Decimal("0")).quote
+        high_vol_quote = qe.compute_quote("BTC", high_vol_market, inventory_skew_bps=Decimal("0")).quote
+
+        assert high_vol_quote.bid_price < low_vol_quote.bid_price
+        assert high_vol_quote.ask_price > low_vol_quote.ask_price
+
+    def test_relaxed_min_edge_allows_tighter_markets(self, settings, btc_market):
+        settings.base_spread_bps = Decimal("4")
+        qe = make_engine(settings)
+        btc_market.short_term_vol = Decimal("0")
+        result = qe.compute_quote("BTC", btc_market, inventory_skew_bps=Decimal("0"))
+        assert result.quote is not None
+
 
 class TestShouldReplace:
     def make_active_quote(self, bid=Decimal("83990"), ask=Decimal("84010")):
